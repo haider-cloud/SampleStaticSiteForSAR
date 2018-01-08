@@ -20,5 +20,5 @@ Once you've downloaded the contents to your local repo, do the following:
 
 1. Zip up all the contents of the static file you'd like to deploy and upload them in a publicly acessible S3 bucket that you own
 2. Update "SourceBucket" and "SourceObject" properties of the Custom Resource in the template.yaml file to reference the location where you've placed your static website assets.  You can re-use this bucket in Step #4 below or use a different one.  Assume this bucket is yourBucketName.
-3. Run the following command from the AWS CLI "aws cloudformation deploy --template-file template.yaml --output-file output-template.yaml --s3-bucket yourBucketName"
+3. Run the following command from the AWS CLI "aws cloudformation package --template-file template.yaml --output-file output-template.yaml --s3-bucket yourBucketName"
 4. Once the output-template.yaml is generated, you can go into the Publisher area of the Serverless Application Repository and upload that file to publish your app.
