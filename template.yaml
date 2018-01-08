@@ -1,0 +1,44 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: 'AWS::Serverless-2016-10-31'
+Description: "A sample template for deployment of static website with asset upload via Serverless Application Repository"
+Resources:
+  SiteBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      AccessControl: PublicRead
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: error.html
+    DeletionPolicy: Retain
+  SiteBucketPolicy:
+    Type: 'AWS::S3::BucketPolicy'
+    Properties:
+      Bucket: !Ref SiteBucket
+      PolicyDocument:
+        Statement:
+          -
+            Action: "s3:GetObject"
+            Effect: "Allow"
+            Principal: "*"
+            Resource: !Join ["", ["arn:aws:s3:::", !Ref SiteBucket, "/*"]]
+  DeploySiteToBucketLambdaFunction:
+    Type: 'AWS::Serverless::Function'
+    DependsOn: SiteBucket
+    Properties:
+      Handler: 'deploy.handler'
+      Runtime: 'python2.7'
+      CodeUri: .
+      Timeout: 300
+      MemorySize: 256
+      Description: 'Function that will be used by the stack to deploy static site assets'
+      Policies: 
+        - S3CrudPolicy:
+            BucketName: !Ref SiteBucket
+  SiteDeploymentCustomResource:
+    Type: 'Custom::ExecuteFunctionToCopySiteContents'
+    DependsOn: DeploySiteToBucketLambdaFunction
+    Properties:
+      ServiceToken: !GetAtt DeploySiteToBucketLambdaFunction.Arn
+      DestinationBucket: !Ref SiteBucket
+      SourceBucket: "shared-public-content" 
+      SourceObject: "MobApp.zip"
